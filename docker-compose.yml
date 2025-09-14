@@ -1,0 +1,132 @@
+
+
+networks:
+  app-network:
+    driver: bridge
+  portainer-network:
+    driver: bridge
+
+volumes:
+  wordpress-data:
+    driver: local
+  mysql-data:
+    driver: local
+  portainer-data:
+    driver: local
+  app-data:
+    driver: local
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites:/etc/nginx/sites-available:ro
+      - wordpress-data:/var/www/html:ro
+    networks:
+      - app-network
+    depends_on:
+      app:
+        condition: service_healthy
+      wordpress:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Custom Application
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: custom-app
+    restart: unless-stopped
+    expose:
+      - "${PORT:-3000}"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+    volumes:
+      - app-data:/app/data
+    networks:
+      - app-network
+    healthcheck:
+      # ใช้ curl เพื่อทดสอบ health check endpoint
+      # -f หรือ --fail จะทำให้ curl คืน exit code ที่ไม่เป็น 0 ถ้า HTTP status code เป็น error (เช่น 4xx, 5xx)
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # WordPress
+  wordpress:
+    image: wordpress:php8.2-fpm-alpine
+    container_name: wordpress-app
+    restart: unless-stopped
+    expose:
+      - "9000"
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_TABLE_PREFIX: wp_
+    volumes:
+      - wordpress-data:/var/www/html
+    networks:
+      - app-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: unless-stopped
+    expose:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Portainer (Container Management)
+  portainer:
+    image: portainer/portainer-ce:alpine  # เน€เธเธฅเธตเนเธขเธเธเธฒเธ latest
+    container_name: portainer-admin
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer-data:/data
+    networks:
+      - portainer-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

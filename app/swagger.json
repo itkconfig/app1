@@ -1,0 +1,43 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Custom App API",
+    "version": "1.0.0",
+    "description": "API Documentation for the Custom App"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root Endpoint",
+        "description": "Returns a welcome message and basic app info.",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Checks the health status of the application.",
+        "responses": {
+          "200": {
+            "description": "Application is healthy"
+          }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "summary": "Get API Data",
+        "description": "Returns sample API data.",
+        "responses": {
+          "200": {
+            "description": "Successful response with sample data"
+          }
+        }
+      }
+    }
+  }
+}

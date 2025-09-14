@@ -1,0 +1,70 @@
+
+
+services:
+  nginx:
+    ports:
+      - "8089:80"
+    volumes:
+      - ./nginx/sites:/etc/nginx/sites-available:rw
+      - ./nginx/logs:/var/log/nginx
+    environment:
+      - NGINX_DEBUG=1
+
+  app:
+    build:
+      target: development
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DEBUG=*
+      - HOT_RELOAD=true
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - ./app/src:/app/src:rw
+    command: npm run dev
+
+  wordpress:
+    environment:
+      WORDPRESS_DEBUG: 1
+      WORDPRESS_DEBUG_LOG: 1
+      WORDPRESS_DEBUG_DISPLAY: 1
+      WORDPRESS_DEBUG_SCRIPT: 1
+      WORDPRESS_DEBUG_LOG_FILE: /var/www/html/wp-content/debug.log
+    ports:
+      - "9001:9000"
+    volumes:
+      - wordpress-data:/var/www/html
+
+  mysql:
+    ports:
+      - "3306:3306"
+    command: --general-log=1 --general-log-file=/var/lib/mysql/general.log
+
+  # PHPMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+      - app-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Log Viewer
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: log-viewer
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - app-network

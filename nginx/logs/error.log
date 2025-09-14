@@ -1,0 +1,2 @@
+2025/09/12 23:58:59 [error] 30#30: *5 open() "/var/www/html/favicon.ico" failed (2: No such file or directory), client: 192.168.101.1, server: _, request: "GET /favicon.ico HTTP/1.1", host: "wp.local", referrer: "http://wp.local/wp-admin/install.php"
+2025/09/13 06:48:08 [error] 30#30: *5 open() "/var/www/html/favicon.ico" failed (2: No such file or directory), client: 192.168.101.1, server: _, request: "GET /favicon.ico HTTP/1.1", host: "192.168.101.50", referrer: "http://192.168.101.50/wp-admin/install.php"
