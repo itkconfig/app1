@@ -1,1 +1,37 @@
+# Global owners
+* @devops-team @tech-lead
+
+# Frontend code
+/src/frontend/ @frontend-team
+*.js @javascript-developers
+*.css @ui-team
+*.html @frontend-team
+
+# Backend code  
+/src/backend/ @backend-team
+*.py @python-developers
+*.java @java-team
+
+# Database
+/migrations/ @database-team @backend-team
+*.sql @database-team
+
+# Documentation
+/docs/ @doc-team
+README.md @doc-team @tech-lead
+CHANGELOG.md @release-manager
+
+# Configuration files
+/.github/ @devops-team
+/config/ @devops-team @security-team
+*.yml @devops-team
+*.yaml @devops-team
+
+# Security sensitive files
+/security/ @security-team @tech-lead
+*.key @security-team
+*.pem @security-team
+
+# Protect CODEOWNERS file itself
+/.github/CODEOWNERS @admin-team
 
