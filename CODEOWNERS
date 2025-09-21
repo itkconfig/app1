@@ -10,3 +10,6 @@
 #*.md @org-itk/itk-admin
 #/config/ @org-itk/itk-admin
 #/.github/ @org-itk/itk-admin
+
+
+/directory1/ @itk-bit
