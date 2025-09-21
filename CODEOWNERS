@@ -1,6 +1,6 @@
 # Default owners สำหรับทั้ง repository
 # ใช้ทีม itk-admin เป็น code owner
-* @itk-config 
+#* @itk-config 
 
 # ตัวอย่างการใช้งานเฉพาะไฟล์
 #*.md @org-itk/itk-admin
